@@ -2,8 +2,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from .models import movie
 import json
-# to ignore the error of csrf token when the post method hit by third party apllication
-from django.views.decorators.csrf import csrf_exempt
+from django.forms import model_to_dict  # model data convert into dictionary
+from django.views.decorators.csrf import csrf_exempt  # to ignore the error of csrf token when the post method hit by third party apllication
 
 
 # Create your views here
@@ -48,6 +48,48 @@ def movie_list(req):
 
         return HttpResponse(jsn_data, content_type='application/json')
 
+@csrf_exempt
+def movie_detail(req,pk):
+    if req.method=='PUT':
+        j_data=req.body  #thunder client se a rha hai data for updation
+        # print(j_data)
+        # print(type(j_data))
 
-def movie_detail(req):
-    pass
+        # converts json data into python new data:
+        newPy_data=json.loads(j_data)  # python new data:
+        # print(newPy_data) 
+        # print(type(newPy_data))
+
+        old_data=movie.objects.get(id=pk) # python old data:
+        oldpy_data=model_to_dict(old_data)  # convert models data into python data
+        oldpy_data['name']=newPy_data['name']
+        oldpy_data['dis']=newPy_data['dis']
+        oldpy_data['active']=newPy_data['active']
+
+        d={'msg':'object updated successfully'}
+        jd=json.dumps(d)
+       
+        return HttpResponse(jd, content_type='application/json')
+
+
+    # elif req.method=='PATCH':
+    #     pass
+
+    # elif req.method=='DELETE':
+    #     pass
+
+    # data=movie.objects.get(id=pk)
+    # # print(data)
+    # # print(type(data))
+
+    # #converting models data into python dictionary:'
+    # p_data=model_to_dict(data)
+    # print(p_data)
+    # print(type(p_data))
+
+    # # convert p_data to json data:
+    # j_data=json.dumps(p_data)
+    # # print(j_data)
+    # # print(type(j_data))
+    # return HttpResponse(j_data, content_type='application/json')
+
