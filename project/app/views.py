@@ -50,6 +50,8 @@ def movie_list(req):
 
 @csrf_exempt
 def movie_detail(req,pk):
+
+#----------------------------------------------------PUT-------------------------------------------------------------  
     if req.method=='PUT':
         j_data=req.body  #thunder client se a rha hai data for updation
         # print(j_data)
@@ -61,35 +63,82 @@ def movie_detail(req,pk):
         # print(type(newPy_data))
 
         old_data=movie.objects.get(id=pk) # python old data:
-        oldpy_data=model_to_dict(old_data)  # convert models data into python data
-        oldpy_data['name']=newPy_data['name']
-        oldpy_data['dis']=newPy_data['dis']
-        oldpy_data['active']=newPy_data['active']
+        # oldpy_data=model_to_dict(old_data)  # convert models data into python data isko hum jab use krenge jab hum old_data ki key ko dictionary ka use krenge lekin usse hum save ni kr skte hai
+        
+        #------------------validations---------------------
+        if newPy_data.get('name', False) and newPy_data.get('dis', False) and newPy_data.get('active', False):
+            old_data.name=newPy_data['name']
+            old_data.dis=newPy_data['dis']
+            old_data.active=newPy_data['active']
+            old_data.save()
+        
+            d={'msg':'object updated successfully'}
+            jd=json.dumps(d)
+        
+            return HttpResponse(jd, content_type='application/json')
+        
+        else:
+            d={'msg':'some fields are missing'}
+            jd=json.dumps(d)
+        
+            return HttpResponse(jd, content_type='application/json')
 
-        d={'msg':'object updated successfully'}
+#------------------------------------------------------------PATCH------------------------------------------------------
+    
+    elif req.method=='PATCH':
+        j_data=req.body  #thunder client se a rha hai data for partially updation
+        # print(j_data)
+        # print(type(j_data))
+
+        # converts json data into python new data:
+        newPy_data=json.loads(j_data)  # python new data:
+        # print(newPy_data) 
+        # print(type(newPy_data))
+
+        old_data=movie.objects.get(id=pk) # python old data:
+        # oldpy_data=model_to_dict(old_data)  # convert models data into python data
+        
+        #------------------validations---------------------
+        if newPy_data.get('name', False): 
+            old_data.name=newPy_data['name']
+        if newPy_data.get('dis', False):
+            old_data.dis=newPy_data['dis']
+        if newPy_data.get('active', False):
+            old_data.active=newPy_data['active']
+        old_data.save()
+        
+        d={'msg':'object partially updated successfully'}
         jd=json.dumps(d)
-       
+    
         return HttpResponse(jd, content_type='application/json')
+        
 
+    elif req.method=='DELETE':
+        if req.method=='DELETE':
+            id=movie.objects.filter(id=pk)
+            if id:
+                data=movie.objects.get(id=pk)
+                data.delete()
 
-    # elif req.method=='PATCH':
-    #     pass
+                p_data={'msg': 'object deleted'}
+                j_data=json.dumps(p_data)
+                return HttpResponse(j_data, content_type='application/json')
+        p_data= {'msg':'id not found'}
+        j_data= json.dumps(p_data)
+        return HttpResponse(j_data, content_type='application/json')    
 
-    # elif req.method=='DELETE':
-    #     pass
+    data=movie.objects.get(id=pk)
+    # print(data)
+    # print(type(data))
 
-    # data=movie.objects.get(id=pk)
-    # # print(data)
-    # # print(type(data))
+    #converting models data into python dictionary:'
+    p_data=model_to_dict(data)
+    print(p_data)
+    print(type(p_data))
 
-    # #converting models data into python dictionary:'
-    # p_data=model_to_dict(data)
-    # print(p_data)
-    # print(type(p_data))
-
-    # # convert p_data to json data:
-    # j_data=json.dumps(p_data)
-    # # print(j_data)
-    # # print(type(j_data))
-    # return HttpResponse(j_data, content_type='application/json')
+    # convert p_data to json data:
+    j_data=json.dumps(p_data)
+    # print(j_data)
+    # print(type(j_data))
+    return HttpResponse(j_data, content_type='application/json')
 
